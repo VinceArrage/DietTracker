@@ -72,3 +72,277 @@ h1 {
   font-size: 1.4rem;
   margin: 16px 4px 8px;
 }
+
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.error {
+  background: color-mix(in srgb, var(--danger) 12%, var(--surface));
+  border: 1px solid var(--danger);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+}
+
+/* Sticky daily progress */
+.today-head {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  padding: env(safe-area-inset-top) 0 8px;
+  margin: 0 -12px;
+  padding-inline: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.today-head__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.macros {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+}
+
+.macro {
+  min-width: 0;
+}
+
+.macro__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.macro__label {
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.macro__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.macro__track {
+  height: 8px;
+  background: var(--surface-2);
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 4px 0 2px;
+}
+
+.macro__fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.macro__status {
+  font-size: 0.75rem;
+  color: var(--warn);
+}
+
+.macro--met .macro__status {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+/* Meals */
+.meal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin: 12px 0;
+  overflow: visible;
+}
+
+.meal--skipped {
+  opacity: 0.6;
+}
+
+.meal__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px 6px 12px;
+  background: var(--surface-2);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.meal--skipped .meal__head {
+  border-radius: var(--radius);
+}
+
+.meal__head h2 {
+  flex: 1;
+  font-size: 1rem;
+  margin: 0;
+  min-width: 0;
+}
+
+.meal__kcal {
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.meal__note {
+  margin: 0;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.row__main {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: var(--tap);
+  padding: 10px 0 10px 12px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.row__main input {
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.row--checked .row__name {
+  text-decoration: line-through;
+  text-decoration-color: var(--muted);
+}
+
+.row__meta,
+.row__macros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.row__macros b {
+  color: var(--text);
+}
+
+.row__macros .p {
+  color: var(--prot);
+}
+
+.row__macros .c {
+  color: var(--carb);
+}
+
+.row__macros .f {
+  color: var(--fat);
+}
+
+.chip {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warn) 18%, var(--surface));
+  color: var(--text);
+}
+
+.chip--extra {
+  background: color-mix(in srgb, var(--accent) 18%, var(--surface));
+}
+
+.icon-btn {
+  flex: none;
+  width: var(--tap);
+  height: var(--tap);
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.icon-btn:active {
+  background: var(--surface-2);
+}
+
+.add-btn {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 0 0 var(--radius) var(--radius);
+}
+
+.menu {
+  position: relative;
+}
+
+.menu__list {
+  position: absolute;
+  right: 4px;
+  top: 100%;
+  z-index: 10;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.15);
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.menu__list button {
+  display: block;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 0 14px;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}

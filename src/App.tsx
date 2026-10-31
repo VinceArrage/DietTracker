@@ -1,7 +1,9 @@
+import Today from './screens/Today';
+
 export default function App() {
   return (
     <main className="app">
-      <h1>Today</h1>
+      <Today />
     </main>
   );
 }
