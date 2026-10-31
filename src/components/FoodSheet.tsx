@@ -110,6 +110,14 @@ export function FoodSheet({ mode, today, onClose }: Props) {
   }
 
   return (
+    <Sheet title={title} onClose={onClose}>
+      {body}
+    </Sheet>
+  );
+}
+
+export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div role="dialog" aria-modal="true" aria-label={title} className="sheet" onClick={(e) => e.stopPropagation()}>
         <header className="sheet__head">
@@ -118,13 +126,13 @@ export function FoodSheet({ mode, today, onClose }: Props) {
             ✕
           </button>
         </header>
-        {body}
+        {children}
       </div>
     </div>
   );
 }
 
-type PickerProps = {
+export type PickerProps = {
   food: Food;
   initial: Portion;
   confirmLabel: string;
@@ -132,7 +140,7 @@ type PickerProps = {
   onConfirm: (portion: Portion, alsoPlan: boolean) => void;
 };
 
-function PortionPicker({ food, initial, confirmLabel, allowPlanUpdate, onConfirm }: PickerProps) {
+export function PortionPicker({ food, initial, confirmLabel, allowPlanUpdate, onConfirm }: PickerProps) {
   const id = useId();
   const [text, setText] = useState(String(initial.quantity));
   const [unit, setUnit] = useState(initial.unit);
@@ -191,7 +199,7 @@ function PortionPicker({ food, initial, confirmLabel, allowPlanUpdate, onConfirm
 
 const normalize = (s: string) => slugify(s).replace(/-/g, ' ');
 
-function FoodSearch({ foods, onPick, onManual }: { foods: Map<string, Food>; onPick: (f: Food) => void; onManual: () => void }) {
+export function FoodSearch({ foods, onPick, onManual }: { foods: Map<string, Food>; onPick: (f: Food) => void; onManual: () => void }) {
   const [query, setQuery] = useState('');
   const [remote, setRemote] = useState<Food[]>([]);
   const [errors, setErrors] = useState<SearchError[]>([]);
@@ -267,7 +275,7 @@ function FoodSearch({ foods, onPick, onManual }: { foods: Map<string, Food>; onP
   );
 }
 
-function ManualFood({ onCreate }: { onCreate: (f: Food) => void }) {
+export function ManualFood({ onCreate }: { onCreate: (f: Food) => void }) {
   const [name, setName] = useState('');
   const [values, setValues] = useState({ grams: '100', kcal: '', protein: '', carbs: '', fat: '' });
   const parsed = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, parseQuantity(v)])) as Record<
