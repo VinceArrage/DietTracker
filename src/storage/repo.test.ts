@@ -1,7 +1,18 @@
 import { clear } from 'idb-keyval';
-import { beforeEach, describe, expect, test } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
+const idb = vi.hoisted(() => ({ failSetMany: false }));
+vi.mock('idb-keyval', async (importOriginal) => {
+  const real = await importOriginal<typeof import('idb-keyval')>();
+  return {
+    ...real,
+    setMany: (entries: [IDBValidKey, unknown][]) =>
+      idb.failSetMany ? Promise.reject(new Error('QuotaExceededError')) : real.setMany(entries),
+  };
+});
 import { setPortion, toggleItem } from '../domain/day';
 import {
+  resetAll,
   exportAll,
   getOrCreateDay,
   importAll,
@@ -13,6 +24,7 @@ import {
 } from './repo';
 
 beforeEach(async () => {
+  idb.failSetMany = false;
   await clear();
 });
 
@@ -76,5 +88,42 @@ describe('export / import', () => {
     const before = await exportAll();
     await expect(importAll({ schemaVersion: 2 })).rejects.toThrow('Unsupported backup version');
     expect(await exportAll()).toEqual(before);
+  });
+});
+
+describe('import safety', () => {
+  test('a failed write keeps the existing data', async () => {
+    const day = await getOrCreateDay('2026-10-30');
+    await saveDay(toggleItem(day, day.meals[0]!.items[0]!.id));
+    const before = await exportAll();
+    const backup = { ...before, days: [] };
+    idb.failSetMany = true;
+    await expect(importAll(backup)).rejects.toThrow();
+    idb.failSetMany = false;
+    expect(await exportAll()).toEqual(before);
+  });
+
+  test('import removes days that are not in the backup', async () => {
+    const file = await exportAll();
+    await getOrCreateDay('2026-10-30');
+    await importAll(file);
+    expect(await listDays()).toEqual([]);
+  });
+
+  test('rejects a backup with a zero-gram food portion', async () => {
+    const file = await exportAll();
+    file.foods[0] = { ...file.foods[0]!, base: { ...file.foods[0]!.base, quantity: 0 } };
+    await expect(importAll(file)).rejects.toThrow('Invalid backup file');
+  });
+});
+
+describe('resetAll', () => {
+  test('deletes days and restores the original plan', async () => {
+    await getOrCreateDay('2026-10-30');
+    const { plan } = await loadPlan();
+    await savePlan({ ...plan, goals: { ...plan.goals, kcal: 1 } });
+    await resetAll();
+    expect(await listDays()).toEqual([]);
+    expect((await loadPlan()).plan.goals.kcal).toBe(3247);
   });
 });

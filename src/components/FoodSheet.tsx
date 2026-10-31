@@ -35,6 +35,7 @@ function safeNutrients(food: Food, portion: Portion | null): Nutrients {
 export function FoodSheet({ mode, today, onClose }: Props) {
   const [step, setStep] = useState<'main' | 'search' | 'manual' | 'portion'>(mode.kind === 'edit' ? 'main' : 'search');
   const [picked, setPicked] = useState<Food | null>(null);
+  const [saveError, setSaveError] = useState(false);
   const swapTarget = mode.kind === 'add' ? null : mode.itemId;
   const editItem = mode.kind === 'edit' ? findItem(today, mode.itemId) : undefined;
   const editFood = editItem ? today.foods.get(editItem.foodId) : undefined;
@@ -47,7 +48,13 @@ export function FoodSheet({ mode, today, onClose }: Props) {
 
   const commitPicked = async (portion: Portion) => {
     if (!picked) return;
-    if (!today.foods.has(picked.id)) await today.addFood(picked);
+    try {
+      if (!today.foods.has(picked.id)) await today.addFood(picked);
+    } catch (e) {
+      console.error(`Failed to save food ${picked.id}`, e);
+      setSaveError(true);
+      return;
+    }
     if (mode.kind === 'add') today.update((d) => addExtra(d, mode.mealId, picked.id, portion));
     else if (swapTarget) today.update((d) => replaceFood(d, swapTarget, picked.id, portion));
     onClose();
@@ -111,6 +118,11 @@ export function FoodSheet({ mode, today, onClose }: Props) {
 
   return (
     <Sheet title={title} onClose={onClose}>
+      {saveError && (
+        <p role="alert" className="error">
+          Could not save this food. Please try again.
+        </p>
+      )}
       {body}
     </Sheet>
   );

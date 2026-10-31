@@ -8,6 +8,7 @@ import {
   createDay,
   dayTotals,
   editedFrom,
+  itemNutrients,
   removeItem,
   replaceFood,
   setPortion,
@@ -146,5 +147,14 @@ describe('extras and totals', () => {
     const d = toggleItem(day, c.id);
     expect(editedFrom(chickenM3(d), shrunk)).toBeNull();
     expect(dayTotals(d, foods).eaten.kcal).toBeCloseTo(226.5, 1);
+  });
+});
+
+describe('itemNutrients', () => {
+  test('a unit that cannot be converted counts as zero instead of throwing', () => {
+    const row = { ...meal(day, 1).items[0]!, unit: 'g', quantity: 30 };
+    expect(row.foodId).toBe('whey-isolate');
+    expect(() => itemNutrients(row, foods)).not.toThrow();
+    expect(itemNutrients(row, foods).kcal).toBe(0);
   });
 });

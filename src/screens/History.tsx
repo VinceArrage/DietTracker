@@ -1,20 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { dayTotals, itemNutrients, type DayLog } from '../domain/day';
 import type { Food } from '../domain/types';
 import { getOrCreateDay, listDays, loadFoods } from '../storage/repo';
 import { fmt1, fmtInt, formatDayLabel, formatPortion } from '../ui/format';
 
-function useFoods(): Map<string, Food> | null {
-  const [foods, setFoods] = useState<Map<string, Food> | null>(null);
+/** Runs an async load; a failure is logged and reported instead of leaving "Loading…" up. */
+function useLoad<T>(load: () => Promise<T>, what: string): { data: T | null; failed: boolean } {
+  const [data, setData] = useState<T | null>(null);
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     let alive = true;
-    void loadFoods().then((f) => alive && setFoods(f));
+    load()
+      .then((d) => alive && setData(d))
+      .catch((e: unknown) => {
+        console.error(`Failed to load ${what}`, e);
+        if (alive) setFailed(true);
+      });
     return () => {
       alive = false;
     };
-  }, []);
-  return foods;
+  }, [load, what]);
+  return { data, failed };
 }
+
+const LoadError = () => (
+  <p role="alert" className="error">
+    Could not load your history.
+  </p>
+);
 
 const goalsMet = (day: DayLog, foods: Map<string, Food>) => {
   const { remaining } = dayTotals(day, foods);
@@ -22,21 +35,15 @@ const goalsMet = (day: DayLog, foods: Map<string, Food>) => {
 };
 
 export function History() {
-  const foods = useFoods();
-  const [days, setDays] = useState<DayLog[] | null>(null);
-
-  useEffect(() => {
-    let alive = true;
-    void listDays().then((d) => alive && setDays(d));
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const { data: foods, failed: foodsFailed } = useLoad(loadFoods, 'foods');
+  const { data: days, failed: daysFailed } = useLoad(listDays, 'days');
 
   return (
     <>
       <h1>History</h1>
-      {!days || !foods ? (
+      {foodsFailed || daysFailed ? (
+        <LoadError />
+      ) : !days || !foods ? (
         <p className="muted">Loading…</p>
       ) : days.length === 0 ? (
         <p className="muted">No days tracked yet.</p>
@@ -65,17 +72,11 @@ export function History() {
 }
 
 export function DayView({ date }: { date: string }) {
-  const foods = useFoods();
-  const [day, setDay] = useState<DayLog | null>(null);
+  const { data: foods, failed: foodsFailed } = useLoad(loadFoods, 'foods');
+  const loadDay = useCallback(() => getOrCreateDay(date), [date]);
+  const { data: day, failed: dayFailed } = useLoad(loadDay, `day ${date}`);
 
-  useEffect(() => {
-    let alive = true;
-    void getOrCreateDay(date).then((d) => alive && setDay(d));
-    return () => {
-      alive = false;
-    };
-  }, [date]);
-
+  if (foodsFailed || dayFailed) return <LoadError />;
   if (!day || !foods) return <p className="muted">Loading…</p>;
   const { eaten } = dayTotals(day, foods);
 

@@ -1,4 +1,4 @@
-import { ZERO, portionNutrients, sumNutrients } from './nutrition';
+import { UnitError, ZERO, portionNutrients, sumNutrients } from './nutrition';
 import type { Goals, Plan, PlanItem } from './plan';
 import { NUTRIENT_KEYS, type Food, type Nutrients, type Portion } from './types';
 
@@ -77,7 +77,15 @@ export function setSkipped(day: DayLog, mealId: string, skipped: boolean): DayLo
 
 export function itemNutrients(item: DayItem, foods: Map<string, Food>): Nutrients {
   const food = foods.get(item.foodId);
-  return food ? portionNutrients(food, item) : { ...ZERO };
+  if (!food) return { ...ZERO };
+  try {
+    return portionNutrients(food, item);
+  } catch (e) {
+    // Inconsistent data (e.g. an old or hand-edited backup) must not take the whole screen down.
+    if (!(e instanceof UnitError)) throw e;
+    console.warn(`Row ${item.id} counted as 0: ${e.message}`);
+    return { ...ZERO };
+  }
 }
 
 export function dayTotals(day: DayLog, foods: Map<string, Food>): DayTotals {

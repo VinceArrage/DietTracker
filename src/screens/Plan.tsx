@@ -22,20 +22,32 @@ export default function PlanScreen() {
   const [goalText, setGoalText] = useState<Record<GoalKey, string>>({ kcal: '', protein: '', carbs: '', fat: '' });
   const [message, setMessage] = useState<string | null>(null);
   const [sheet, setSheet] = useState<PlanSheet | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    void loadPlan().then(({ plan: p, foods: f }) => {
-      if (!alive) return;
-      setPlan(p);
-      setFoods(new Map(f.map((x) => [x.id, x])));
-      setGoalText({ kcal: String(p.goals.kcal), protein: String(p.goals.protein), carbs: String(p.goals.carbs), fat: String(p.goals.fat) });
-    });
+    loadPlan()
+      .then(({ plan: p, foods: f }) => {
+        if (!alive) return;
+        setPlan(p);
+        setFoods(new Map(f.map((x) => [x.id, x])));
+        setGoalText({ kcal: String(p.goals.kcal), protein: String(p.goals.protein), carbs: String(p.goals.carbs), fat: String(p.goals.fat) });
+      })
+      .catch((e: unknown) => {
+        console.error('Failed to load plan', e);
+        if (alive) setLoadError(true);
+      });
     return () => {
       alive = false;
     };
   }, []);
 
+  if (loadError)
+    return (
+      <p role="alert" className="error">
+        Could not load your plan.
+      </p>
+    );
   if (!plan) return <p className="muted">Loading…</p>;
 
   const persist = (next: Plan) => {
@@ -58,11 +70,16 @@ export default function PlanScreen() {
     GOAL_FIELDS.forEach(({ key }, i) => (goals[key] = goalValues[i]!));
     const next = { ...plan, goals };
     setPlan(next);
-    await savePlan(next);
-    // Goals apply to today as well; earlier days keep the goals they were tracked against.
-    const today = await getOrCreateDay(localDateKey(new Date()));
-    await saveDay({ ...today, goals });
-    setMessage('Goals saved');
+    try {
+      await savePlan(next);
+      // Goals apply to today as well; earlier days keep the goals they were tracked against.
+      const today = await getOrCreateDay(localDateKey(new Date()));
+      await saveDay({ ...today, goals });
+      setMessage('Goals saved');
+    } catch (e) {
+      console.error('Failed to save goals', e);
+      setMessage('Could not save your goals.');
+    }
   };
 
   const addFoodIfNew = async (food: Food) => {
@@ -264,7 +281,14 @@ function PlanItemSheet({ sheet, plan, foods, onClose, onSaveItem, onRemoveItem, 
           initial={picked.base.unit === 'g' ? { quantity: 100, unit: 'g' } : { quantity: 1, unit: picked.base.unit }}
           confirmLabel="Add to plan"
           allowPlanUpdate={false}
-          onConfirm={(portion) => void onAddItem(picked, portion).then(onClose)}
+          onConfirm={(portion) =>
+            void onAddItem(picked, portion)
+              .then(onClose)
+              .catch((e: unknown) => {
+                console.error(`Failed to add ${picked.name} to the plan`, e);
+                window.alert('Could not save this food. Please try again.');
+              })
+          }
         />
       </Sheet>
     );

@@ -1,4 +1,4 @@
-import { clear, get, getMany, keys, set, setMany } from 'idb-keyval';
+import { clear, delMany, get, getMany, keys, set, setMany } from 'idb-keyval';
 import { z } from 'zod';
 import seed from '../data/plan.seed.json';
 import { createDay, type DayLog } from '../domain/day';
@@ -18,7 +18,7 @@ const FoodSchema = z.object({
   id: z.string().min(1),
   name: z.string(),
   source: z.enum(['plan', 'off', 'usda', 'manual']),
-  base: z.object({ ...PortionShape, nutrients: NutrientsSchema }),
+  base: z.object({ quantity: num.positive(), unit: z.string().min(1), nutrients: NutrientsSchema }),
   gramsPerUnit: z.record(z.string(), num.positive()).optional(),
 });
 const PlanSchema = z.object({
@@ -125,11 +125,19 @@ export async function importAll(file: unknown): Promise<void> {
   const parsed = ExportSchema.safeParse(file);
   if (!parsed.success) throw new Error('Invalid backup file');
   const data = parsed.data;
-  await clear();
-  await setMany([
+  const entries: [string, unknown][] = [
     ['plan', data.plan],
     ['foods', data.foods],
     ['settings', data.settings],
     ...data.days.map((d): [string, DayLog] => [DAY_PREFIX + d.date, d]),
-  ]);
+  ];
+  // Write the backup first, then drop leftovers, so a failed write never leaves the store empty.
+  await setMany(entries);
+  const keep = new Set(entries.map(([k]) => k));
+  await delMany((await keys()).filter((k) => !keep.has(String(k))));
+}
+
+/** Deletes every day and setting; the original plan is re-seeded on next load. */
+export async function resetAll(): Promise<void> {
+  await clear();
 }

@@ -1,6 +1,5 @@
-import { clear } from 'idb-keyval';
 import { useEffect, useState } from 'react';
-import { exportAll, importAll, loadSettings, localDateKey, saveSettings } from '../storage/repo';
+import { exportAll, importAll, loadSettings, localDateKey, resetAll, saveSettings } from '../storage/repo';
 
 export default function Settings() {
   const [key, setKey] = useState('');
@@ -9,7 +8,9 @@ export default function Settings() {
 
   useEffect(() => {
     let alive = true;
-    void loadSettings().then((s) => alive && setKey(s.usdaKey ?? ''));
+    loadSettings()
+      .then((s) => alive && setKey(s.usdaKey ?? ''))
+      .catch((e: unknown) => console.error('Failed to load settings', e));
     return () => {
       alive = false;
     };
@@ -21,14 +22,20 @@ export default function Settings() {
   };
 
   const onExport = async () => {
-    const data = await exportAll();
-    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `diettracker-${localDateKey(new Date())}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    report('Backup downloaded');
+    try {
+      const data = await exportAll();
+      const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], { type: 'application/json' }));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `diettracker-${localDateKey(new Date())}.json`;
+      a.click();
+      // iOS Safari reads the blob after click() returns; revoking at once can cancel the download.
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+      report('Backup downloaded');
+    } catch (e) {
+      console.error('Backup export failed', e);
+      report(null, 'Could not create the backup.');
+    }
   };
 
   const onImport = async (file: File | undefined) => {
@@ -50,7 +57,12 @@ export default function Settings() {
         className="card"
         onSubmit={(e) => {
           e.preventDefault();
-          void saveSettings({ usdaKey: key.trim() || null }).then(() => report('Key saved'));
+          saveSettings({ usdaKey: key.trim() || null })
+            .then(() => report('Key saved'))
+            .catch((e: unknown) => {
+              console.error('Failed to save settings', e);
+              report(null, 'Could not save the key.');
+            });
         }}
       >
         <h2>Food search</h2>
@@ -99,7 +111,12 @@ export default function Settings() {
           className="btn btn--danger"
           onClick={() => {
             if (window.confirm('Delete all days and restore the original plan? Export a backup first if unsure.')) {
-              void clear().then(() => window.location.reload());
+              resetAll()
+                .then(() => window.location.reload())
+                .catch((e: unknown) => {
+                  console.error('Reset failed', e);
+                  report(null, 'Could not reset your data.');
+                });
             }
           }}
         >
