@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { setSkipped, toggleItem } from '../domain/day';
 import { FoodSheet, type SheetMode } from '../components/FoodSheet';
-import { MacroBar } from '../components/MacroBar';
 import { MealCard } from '../components/MealCard';
-import { PlanCheck } from '../components/PlanCheck';
+import { TotalsPanel } from '../components/TotalsPanel';
 import { useToday } from '../state/useToday';
 import { formatDayLabel } from '../ui/format';
 
@@ -15,19 +14,8 @@ export default function Today() {
   return (
     <>
       <header className="today-head">
-        <div className="today-head__title">
-          <h1>Today</h1>
-          {day && <span className="muted">{formatDayLabel(day.date)}</span>}
-        </div>
-        {day && totals && (
-          <div className="macros">
-            <MacroBar label="Calories" eaten={totals.eaten.kcal} goal={day.goals.kcal} color="var(--accent)" />
-            <MacroBar label="Protein" eaten={totals.eaten.protein} goal={day.goals.protein} unit=" g" color="var(--prot)" />
-            <MacroBar label="Carbs" eaten={totals.eaten.carbs} goal={day.goals.carbs} unit=" g" color="var(--carb)" />
-            <MacroBar label="Fat" eaten={totals.eaten.fat} goal={day.goals.fat} unit=" g" color="var(--fat)" />
-          </div>
-        )}
-        {day && totals && <PlanCheck planned={totals.planned} goals={day.goals} />}
+        <h1>Today</h1>
+        {day && <span className="muted">{formatDayLabel(day.date)}</span>}
       </header>
       {error && (
         <p role="alert" className="error">
@@ -48,6 +36,7 @@ export default function Today() {
             />
           ))
         : !error && <p className="muted">Loading…</p>}
+      {day && totals && <TotalsPanel totals={totals} goals={day.goals} />}
       {sheet && <FoodSheet key={JSON.stringify(sheet)} mode={sheet} today={today} onClose={() => setSheet(null)} />}
     </>
   );

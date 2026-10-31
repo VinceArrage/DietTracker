@@ -118,3 +118,23 @@ test('a row whose plan item was deleted shows as an extra and cannot update the 
   await user.click(within(m3).getByRole('button', { name: 'Edit Chicken Breast, cooked' }));
   expect(within(screen.getByRole('dialog')).queryByRole('checkbox', { name: 'Also update my plan' })).not.toBeInTheDocument();
 });
+
+test('the daily totals panel collapses to one line and remembers it', async () => {
+  localStorage.clear();
+  const user = userEvent.setup();
+  const { unmount } = render(<Today />);
+  await screen.findByRole('region', { name: 'Meal 1 (pré-workout)' });
+  await user.click(within(meal('Meal 1 (pré-workout)')).getByRole('checkbox', { name: /Whey isolate/ }));
+  const toggle = screen.getByRole('button', { name: /Daily totals/ });
+  expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await user.click(toggle);
+  expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  expect(screen.queryByRole('group', { name: 'Calories' })).not.toBeInTheDocument();
+  expect(toggle).toHaveTextContent('106 / 3247 kcal');
+  expect(toggle).toHaveTextContent('P 24/304');
+  unmount();
+  render(<Today />);
+  await screen.findByRole('region', { name: 'Meal 1 (pré-workout)' });
+  expect(screen.getByRole('button', { name: /Daily totals/ })).toHaveAttribute('aria-expanded', 'false');
+  localStorage.clear();
+});

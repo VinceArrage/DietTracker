@@ -85,22 +85,80 @@ h1 {
   padding: 10px 12px;
 }
 
-/* Sticky daily progress */
+/* Today header */
 .today-head {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: var(--bg);
-  padding: env(safe-area-inset-top) 0 8px;
-  margin: 0 -12px;
-  padding-inline: 12px;
-  border-bottom: 1px solid var(--border);
-}
-
-.today-head__title {
   display: flex;
   align-items: baseline;
   gap: 10px;
+}
+
+/* Daily totals: pinned above the tab bar, collapsible */
+.totals {
+  position: sticky;
+  bottom: calc(57px + env(safe-area-inset-bottom));
+  z-index: 5;
+  margin: 12px -4px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius) var(--radius) 0 0;
+  border-bottom: 0;
+  box-shadow: 0 -4px 16px rgb(0 0 0 / 0.08);
+}
+
+.totals__toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: var(--tap);
+  padding: 6px 12px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.totals__title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.totals--open .totals__title {
+  flex: 1;
+}
+
+.totals__compact {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 0;
+}
+
+.totals__compact .p {
+  color: var(--prot);
+}
+
+.totals__compact .c {
+  color: var(--carb);
+}
+
+.totals__compact .f {
+  color: var(--fat);
+}
+
+.totals__chevron {
+  color: var(--muted);
+}
+
+.totals__body {
+  padding: 0 12px 10px;
 }
 
 .macros {
@@ -729,3 +787,12 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 .crash { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
