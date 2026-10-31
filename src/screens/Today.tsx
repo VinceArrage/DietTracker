@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { setSkipped, toggleItem } from '../domain/day';
+import { FoodSheet, type SheetMode } from '../components/FoodSheet';
 import { MacroBar } from '../components/MacroBar';
 import { MealCard } from '../components/MealCard';
 import { useToday } from '../state/useToday';
 import { formatDayLabel } from '../ui/format';
 
 export default function Today() {
-  const { day, plan, foods, totals, error, update } = useToday();
+  const today = useToday();
+  const { day, plan, foods, totals, error, update } = today;
+  const [sheet, setSheet] = useState<SheetMode | null>(null);
 
   return (
     <>
@@ -36,12 +40,13 @@ export default function Today() {
               plan={plan}
               foods={foods}
               onToggle={(id) => update((d) => toggleItem(d, id))}
-              onEdit={() => {}}
-              onAdd={() => {}}
+              onEdit={(itemId) => setSheet({ kind: 'edit', itemId })}
+              onAdd={() => setSheet({ kind: 'add', mealId: meal.planMealId })}
               onSkip={(skipped) => update((d) => setSkipped(d, meal.planMealId, skipped))}
             />
           ))
         : !error && <p className="muted">Loading…</p>}
+      {sheet && <FoodSheet key={JSON.stringify(sheet)} mode={sheet} today={today} onClose={() => setSheet(null)} />}
     </>
   );
 }

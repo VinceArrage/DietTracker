@@ -46,6 +46,18 @@ describe('normalizeUsda', () => {
     expect(foods.find((f) => f.id === 'usda-173944')!.gramsPerUnit).toEqual({ '1 medium': 118 });
   });
 
+  test('lists generic foods before branded products', () => {
+    const kcal = [{ nutrientNumber: '208', value: 100 }];
+    const mixed = normalizeUsda({
+      foods: [
+        { fdcId: 1, description: 'BANANA CHIPS', dataType: 'Branded', foodNutrients: kcal },
+        { fdcId: 2, description: 'Bananas, raw', dataType: 'SR Legacy', foodNutrients: kcal },
+        { fdcId: 3, description: 'Bananas, ripe', dataType: 'Foundation', foodNutrients: kcal },
+      ],
+    });
+    expect(mixed.map((f) => f.id)).toEqual(['usda-2', 'usda-3', 'usda-1']);
+  });
+
   test('missing sugar → 0', () => {
     expect(foods.find((f) => f.id === 'usda-1105073')!.base.nutrients.sugar).toBe(0);
   });

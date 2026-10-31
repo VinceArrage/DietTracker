@@ -16,6 +16,7 @@ const NUTRIENT_NUMBERS: Record<string, keyof Nutrients> = {
 type UsdaFood = {
   fdcId?: unknown;
   description?: unknown;
+  dataType?: unknown;
   foodNutrients?: { nutrientNumber?: unknown; value?: unknown }[];
   foodMeasures?: { disseminationText?: unknown; gramWeight?: unknown }[];
 };
@@ -24,7 +25,9 @@ type UsdaFood = {
 export function normalizeUsda(json: unknown): Food[] {
   const foods = (json as { foods?: unknown } | null)?.foods;
   if (!Array.isArray(foods)) return [];
-  return (foods as UsdaFood[]).flatMap((f) => {
+  // Branded products often outrank plain foods for generic queries; list them last.
+  const ordered = [...(foods as UsdaFood[])].sort((a, b) => Number(a.dataType === 'Branded') - Number(b.dataType === 'Branded'));
+  return ordered.flatMap((f) => {
     if (typeof f.fdcId !== 'number' || typeof f.description !== 'string') return [];
     const nutrients: Nutrients = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0, sugar: 0 };
     for (const fn of f.foodNutrients ?? []) {
