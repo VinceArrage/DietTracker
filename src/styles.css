@@ -1,0 +1,74 @@
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #eceef1;
+  --text: #1c1f23;
+  --muted: #6b7280;
+  --border: #dfe2e6;
+  --accent: #1f7a4d;
+  --prot: #4f9a1d;
+  --carb: #e07a12;
+  --fat: #d6333a;
+  --ok: #1f9d55;
+  --warn: #b7791f;
+  --danger: #c53030;
+  --radius: 12px;
+  --tap: 44px;
+  color-scheme: light dark;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111315;
+    --surface: #1b1e21;
+    --surface-2: #24282c;
+    --text: #e8eaed;
+    --muted: #9aa1a9;
+    --border: #2f3439;
+    --accent: #3fbf7f;
+    --prot: #7cc94a;
+    --carb: #f2a04a;
+    --fat: #f06a70;
+    --ok: #3fbf7f;
+    --warn: #e0b04a;
+    --danger: #f06a70;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.app {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 0 12px 88px;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin: 16px 4px 8px;
+}
