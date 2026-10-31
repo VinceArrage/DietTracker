@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { clear } from 'idb-keyval';
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
-import { getOrCreateDay, saveDay } from '../storage/repo';
+import { getOrCreateDay, loadPlan, saveDay, savePlan } from '../storage/repo';
 import { setPortion } from '../domain/day';
 import Today from './Today';
 
@@ -47,6 +47,24 @@ test('skipping meal 4 hides its foods and marks it skipped', async () => {
   expect(within(meal('Meal 4')).getAllByRole('checkbox')).toHaveLength(4);
 });
 
+test('the header says when today’s plan covers the goals', async () => {
+  render(<Today />);
+  await screen.findByRole('region', { name: 'Meal 6' });
+  expect(screen.getByRole('status', { name: 'Plan check' })).toHaveTextContent('Your plan for today covers your goals');
+});
+
+test('skipping meal 4 shows how far short today’s plan now is', async () => {
+  const user = userEvent.setup();
+  render(<Today />);
+  await screen.findByRole('region', { name: 'Meal 4' });
+  await user.click(within(meal('Meal 4')).getByRole('button', { name: 'Options for Meal 4' }));
+  await user.click(screen.getByRole('menuitem', { name: 'Skip meal' }));
+  const check = screen.getByRole('status', { name: 'Plan check' });
+  expect(check).toHaveTextContent('429 kcal');
+  expect(check).toHaveTextContent('P 48 g');
+  expect(check).toHaveTextContent('short');
+});
+
 test('a row changed for today shows what the plan says', async () => {
   const day = await getOrCreateDay(localToday());
   const chicken = day.meals[2]!.items[0]!;
@@ -80,3 +98,23 @@ function localToday(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+
+test('rows show fiber and sugar on a second line', async () => {
+  render(<Today />);
+  const m4 = await screen.findByRole('region', { name: 'Meal 4' });
+  expect(within(m4).getByText('Fiber 3.6 · Sugar 15.5')).toBeInTheDocument();
+});
+
+test('a row whose plan item was deleted shows as an extra and cannot update the plan', async () => {
+  const day = await getOrCreateDay(localToday());
+  expect(day.meals[2]!.items[0]!.foodId).toBe('chicken-breast-cooked');
+  const { plan } = await loadPlan();
+  await savePlan({ ...plan, meals: plan.meals.map((m, i) => (i === 2 ? { ...m, items: m.items.slice(1) } : m)) });
+  const user = userEvent.setup();
+  render(<Today />);
+  const m3 = await screen.findByRole('region', { name: 'Meal 3' });
+  const row = within(m3).getByText('Chicken Breast, cooked').closest('li')!;
+  expect(within(row).getByText('extra')).toBeInTheDocument();
+  await user.click(within(m3).getByRole('button', { name: 'Edit Chicken Breast, cooked' }));
+  expect(within(screen.getByRole('dialog')).queryByRole('checkbox', { name: 'Also update my plan' })).not.toBeInTheDocument();
+});

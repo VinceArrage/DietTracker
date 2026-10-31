@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState } from 'react';
-import { addExtra, applyItemToPlan, removeItem, replaceFood, setPortion, type DayItem } from '../domain/day';
+import { addExtra, applyItemToPlan, hasPlanItem, removeItem, replaceFood, setPortion, type DayItem } from '../domain/day';
 import { ZERO, convertibleUnits, parseQuantity, portionNutrients } from '../domain/nutrition';
 import { slugify } from '../domain/plan';
 import type { Food, Nutrients, Portion } from '../domain/types';
@@ -63,7 +63,7 @@ export function FoodSheet({ mode, today, onClose }: Props) {
           food={editFood}
           initial={editItem}
           confirmLabel="Save"
-          allowPlanUpdate={editItem.planItemId !== null}
+          allowPlanUpdate={today.plan !== null && hasPlanItem(editItem, today.plan)}
           onConfirm={(portion, alsoPlan) => {
             today.update((d) => {
               const next = setPortion(d, editItem.id, portion);
@@ -220,9 +220,10 @@ export function FoodSearch({ foods, onPick, onManual }: { foods: Map<string, Foo
       try {
         const settings = await loadSettings();
         const r = await searchFoods(q, { usdaKey: settings.usdaKey, signal: ctrl.signal });
+        const allFailed = r.results.length === 0 && r.errors.length >= 2;
         setRemote(r.results);
-        setErrors(r.errors);
-        setStatus('idle');
+        setErrors(allFailed ? [] : r.errors);
+        setStatus(allFailed ? 'offline' : 'idle');
       } catch (e) {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.warn(`Food search failed for "${q}"`, e);
@@ -246,7 +247,14 @@ export function FoodSearch({ foods, onPick, onManual }: { foods: Map<string, Foo
         type="search"
         placeholder="Search foods (e.g. banana, St-Méthode)"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          if (e.target.value.trim().length < 2) {
+            setRemote([]);
+            setErrors([]);
+            setStatus('idle');
+          }
+        }}
         autoFocus
       />
       <div role="status" className="search__status">

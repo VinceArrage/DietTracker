@@ -123,3 +123,39 @@ test('your own foods match offline before any database result', async () => {
   expect(await within(sheet()).findByRole('button', { name: /Chicken Breast, cooked/ })).toBeInTheDocument();
   expect(await within(sheet()).findByText('Search is offline — showing your foods only')).toBeInTheDocument();
 });
+
+test('clearing the search while it runs clears "Searching…" and old results', async () => {
+  vi.mocked(searchFoods).mockImplementation(
+    (_q, opts) =>
+      new Promise((_resolve, reject) =>
+        opts.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError'))),
+      ),
+  );
+  const user = userEvent.setup();
+  render(<Today />);
+  await screen.findByRole('region', { name: 'Meal 2 (post-workout)' });
+  await user.click(within(meal('Meal 2 (post-workout)')).getByRole('button', { name: '+ Add extra' }));
+  const box = within(sheet()).getByRole('searchbox');
+  await user.type(box, 'chicken');
+  expect(await within(sheet()).findByText('Searching…')).toBeInTheDocument();
+  await user.clear(box);
+  expect(within(sheet()).queryByText('Searching…')).not.toBeInTheDocument();
+  expect(within(sheet()).queryByRole('button', { name: /Chicken Breast/ })).not.toBeInTheDocument();
+});
+
+test('when every source fails, one offline message replaces per-source errors', async () => {
+  vi.mocked(searchFoods).mockResolvedValue({
+    results: [],
+    errors: [
+      { source: 'off', message: "Couldn't reach Open Food Facts" },
+      { source: 'usda', message: "Couldn't reach USDA" },
+    ],
+  });
+  const user = userEvent.setup();
+  render(<Today />);
+  await screen.findByRole('region', { name: 'Meal 2 (post-workout)' });
+  await user.click(within(meal('Meal 2 (post-workout)')).getByRole('button', { name: '+ Add extra' }));
+  await user.type(within(sheet()).getByRole('searchbox'), 'banana');
+  expect(await within(sheet()).findByText('Search is offline — showing your foods only')).toBeInTheDocument();
+  expect(within(sheet()).queryByText("Couldn't reach USDA")).not.toBeInTheDocument();
+});

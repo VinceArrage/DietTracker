@@ -3,6 +3,7 @@ import { setSkipped, toggleItem } from '../domain/day';
 import { FoodSheet, type SheetMode } from '../components/FoodSheet';
 import { MacroBar } from '../components/MacroBar';
 import { MealCard } from '../components/MealCard';
+import { PlanCheck } from '../components/PlanCheck';
 import { useToday } from '../state/useToday';
 import { formatDayLabel } from '../ui/format';
 
@@ -26,6 +27,7 @@ export default function Today() {
             <MacroBar label="Fat" eaten={totals.eaten.fat} goal={day.goals.fat} unit=" g" color="var(--fat)" />
           </div>
         )}
+        {day && totals && <PlanCheck planned={totals.planned} goals={day.goals} />}
       </header>
       {error && (
         <p role="alert" className="error">

@@ -93,6 +93,11 @@ export function dayTotals(day: DayLog, foods: Map<string, Food>): DayTotals {
   return { eaten, planned, remaining, over };
 }
 
+/** True when the row still has a matching item in the plan (false for extras and orphaned rows). */
+export function hasPlanItem(item: DayItem, plan: Plan): boolean {
+  return item.planItemId !== null && findPlanItem(plan, item.planItemId) !== undefined;
+}
+
 function findPlanItem(plan: Plan, planItemId: string): PlanItem | undefined {
   for (const m of plan.meals) {
     const found = m.items.find((i) => i.id === planItemId);

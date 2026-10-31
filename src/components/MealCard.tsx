@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { editedFrom, itemNutrients, type DayMeal } from '../domain/day';
+import { editedFrom, hasPlanItem, itemNutrients, type DayMeal } from '../domain/day';
 import { sumNutrients } from '../domain/nutrition';
 import type { Plan } from '../domain/plan';
 import type { Food } from '../domain/types';
@@ -71,7 +71,7 @@ export function MealCard({ meal, plan, foods, onToggle, onEdit, onAdd, onSkip }:
                 name={foods.get(item.foodId)?.name ?? 'Unknown food'}
                 nutrients={n}
                 editedFrom={editedFrom(item, plan)}
-                isExtra={item.planItemId === null}
+                isExtra={!hasPlanItem(item, plan)}
                 onToggle={() => onToggle(item.id)}
                 onEdit={() => onEdit(item.id)}
               />

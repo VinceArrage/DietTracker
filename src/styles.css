@@ -711,3 +711,20 @@ h1 {
   color: var(--accent);
   font-weight: 600;
 }
+
+.plan-check {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--ok);
+}
+
+.plan-check--short {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.row__minor {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}

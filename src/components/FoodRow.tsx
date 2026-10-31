@@ -31,6 +31,9 @@ export function FoodRow({ item, name, nutrients: n, editedFrom, isExtra, onToggl
             <span className="c">C {fmt1(n.carbs)}</span>
             <span className="f">F {fmt1(n.fat)}</span>
           </span>
+          <span className="row__minor">
+            Fiber {fmt1(n.fiber)} · Sugar {fmt1(n.sugar)}
+          </span>
         </span>
       </label>
       <button type="button" className="icon-btn" aria-label={`Edit ${name}`} onClick={onEdit}>
