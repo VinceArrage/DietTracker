@@ -1,0 +1,41 @@
+{
+ "hits": [
+  {
+   "code": "68505101301",
+   "nutriments": {
+    "carbohydrates_100g": 40,
+    "energy-kcal_100g": 226.666666666667,
+    "fat_100g": 2.66666666666667,
+    "fiber_100g": 8,
+    "proteins_100g": 13.3333333333333,
+    "saturated-fat_100g": 0.4
+   },
+   "product_name": "Les Grains - St. Methode - St. Methode - St. Methode"
+  },
+  {
+   "code": "0068505103114",
+   "brands": [
+    "St-Methode"
+   ],
+   "nutriments": {
+    "sugars_100g": 1.4492753623188406,
+    "fiber_100g": 4.3478260869565215,
+    "proteins_100g": 8.695652173913043,
+    "fat_100g": 4.3478260869565215,
+    "energy-kcal_100g": 260.8695652173913,
+    "saturated-fat_100g": 0.6260869727618452,
+    "carbohydrates_100g": 46.3768115942029
+   },
+   "product_name": "Pain biologique"
+  },
+  {
+   "code": "12891100",
+   "brands": [
+    "St Methode"
+   ],
+   "product_name": "pain allongé 9 grains"
+  }
+ ],
+ "page": 1,
+ "page_size": 3
+}
